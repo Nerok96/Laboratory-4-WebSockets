@@ -65,6 +65,8 @@ public class ElizaServerTest {
 	@Ignore
 	public void onChat() throws DeploymentException, IOException, URISyntaxException, InterruptedException {
 		// COMPLETE
+		// We declare de latch with 5 elements, because we will have 5 messages exchange. 3 from the "hello" from the server, 2 from the "answer"
+		CountDownLatch latch = new CountDownLatch(5);
 		List<String> list = new ArrayList<>();
 		ClientEndpointConfig configuration = ClientEndpointConfig.Builder.create().build();
 		ClientManager client = ClientManager.createClient();
@@ -74,21 +76,29 @@ public class ElizaServerTest {
 			public void onOpen(Session session, EndpointConfig config) {
 
 				// COMPLETE
-
+				//We send a randome message to the server, we dont care about the answer.
+				session.getAsyncRemote().sendText("asdf");
+				
 				session.addMessageHandler(new MessageHandler.Whole<String>() {
 
 					@Override
 					public void onMessage(String message) {
 						list.add(message);
 						// COMPLETE
+						// We decrease the latch countdown
+						latch.countDown();
 					}
 				});
 			}
 
 		}, configuration, new URI("ws://localhost:8025/websockets/eliza"));
 		// COMPLETE
+		latch.await();
+		//We run the test
 		// COMPLETE
+		assertEquals(5, list.size());
 		// COMPLETE
+		assertEquals("The doctor is in.", list.get(0));
 	}
 
 	@After
